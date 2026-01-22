@@ -1,0 +1,58 @@
+DAY4_HW
+Q1Find the names of students who improved their scores every single day (Day 3 > Day 2 AND Day 2 > Day 1).  Also, display the name of the Month they were born in using a date function.
+SELECT 
+t1.full_name,
+TO_CHAR(t1.dob, 'Month') AS birth_month,
+t2.total_score AS day1,
+t3.total_score AS day2,
+t4.total_score AS day3
+FROM "RSVP_New" as t1
+JOIN day_1_exam t2 ON t1.hall_ticket_no = t2.hall_ticket_no
+JOIN day_2_exam t3 ON t1.hall_ticket_no = t3.hall_ticket_no
+JOIN day_3_exam t4 ON t1.hall_ticket_no = t4.hall_ticket_no
+WHERE t3.total_score > t2.total_score
+AND t4.total_score > t3.total_score
+
+Q2List the names and contact numbers of students who attended the Day 1 AND Day 2 exams, but EXCEPT those who showed up for Day 3.
+SELECT 
+t1.full_name, 
+t1.contact_no
+FROM "RSVP_New" as t1
+JOIN day_1_exam as d1
+ON t1.hall_ticket_no = d1.hall_ticket_no
+JOIN day_2_exam as d2
+ON t1.hall_ticket_no = d2.hall_ticket_no
+LEFT JOIN day_3_exam as d3
+ON t1.hall_ticket_no = d3.hall_ticket_no
+WHERE d3.hall_ticket_no IS NULL;
+
+Q3ind the students who registered in the Morning (before 12:00 PM) and scored higher than the average class score of Day 3.
+SELECT 
+t1.full_name, 
+t1.created_at,
+t3.total_score
+FROM day_3_exam as t3
+JOIN "RSVP_New" as t1
+ON t3.hall_ticket_no = t1.hall_ticket_no
+WHERE EXTRACT(HOUR FROM t1.created_at) < 12
+AND t3.total_score > (
+SELECT AVG(total_score) FROM day_3_exam)
+ORDER BY t3.total_score DESC, t1.full_name;
+
+Q4Create a master leaderboard. Combine the Hall Ticket Numbers and scores from all 3 days. Use a CASE statement to label them: if the combined score across all 3 days is >120, they are a 'GOAT', otherwise 'Rising Legend'
+SELECT 
+t1.hall_ticket_no,
+(t1.total_score + t2.total_score + t3.total_score) AS total_points,
+CASE 
+WHEN (t1.total_score + t2.total_score + t3.total_score) > 120 THEN 'GOAT'
+ELSE 'Rising Legend'
+END AS final_status
+FROM day_1_exam as t1
+JOIN day_2_exam t2 
+ON t1.hall_ticket_no = t2.hall_ticket_no
+JOIN day_3_exam t3 
+ON t1.hall_ticket_no = t3.hall_ticket_no
+ORDER BY total_points DESC
+
+
+
